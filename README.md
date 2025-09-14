@@ -1,98 +1,116 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+  <h1>🛡️ Authentication Service</h1>
+  <p>
+    บริการนี้ทำหน้าที่จัดการ <strong>การยืนยันตัวตน (Authentication)</strong> สำหรับการใช้งานแอปพลิเคชัน  
+    พัฒนาด้วย <strong>NestJS</strong>, <strong>Prisma</strong>, และ <strong>PostgreSQL</strong>  
+    ใช้ระบบ <strong>JWT (Access Token + Refresh Token)</strong> สำหรับตรวจสอบสิทธิ์การเข้าใช้งาน
+  </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+  <h2>🚀 ฟีเจอร์</h2>
+  <ul>
+    <li>สมัครสมาชิก / ล็อกอิน</li>
+    <li>เก็บรหัสผ่านแบบเข้ารหัสด้วย <strong>bcrypt</strong></li>
+    <li>
+      ระบบยืนยันตัวตนด้วย <strong>JWT</strong>
+      <ul>
+        <li><strong>Access Token</strong>: ใช้ยืนยันตัวตนขณะใช้งาน มีอายุ <em>15 นาที</em></li>
+        <li><strong>Refresh Token</strong>: ใช้สร้าง Access Token ใหม่ มีอายุ <em>1 วัน</em></li>
+      </ul>
+    </li>
+    <li>ใช้ <strong>Prisma ORM</strong> เชื่อมต่อฐานข้อมูล <strong>PostgreSQL</strong></li>
+  </ul>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+  <h2>⚙️ การติดตั้ง</h2>
+  <h3>1. Clone โปรเจกต์</h3>
+  <pre><code>git clone https://github.com/Doctor-Appointment-SA/Authentication-Service.git
+cd Authentication-Service</code></pre>
 
-## Description
+  <h3>2. ติดตั้ง Dependencies</h3>
+  <pre><code>npm install</code></pre>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+  <h3>3. ตั้งค่าไฟล์ .env</h3>
+  <pre><code># Database
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
 
-## Project setup
+# JWT
+JWT_ACCESS_SECRET=""
+JWT_REFRESH_SECRET=""
+JWT_ACCESS_EXPIRES="15m"
+JWT_REFRESH_EXPIRES="1d"</code></pre>
 
-```bash
-$ npm install
-```
+  <h3>4. สร้าง Prisma Client</h3>
+  <pre><code>npx prisma generate</code></pre>
 
-## Compile and run the project
+  <h3>5. รันเซิร์ฟเวอร์ Development</h3>
+  <pre><code>npm run build
+npm run start:dev</code></pre>
 
-```bash
-# development
-$ npm run start
+  <h2>📡 ตัวอย่างการใช้งาน API</h2>
 
-# watch mode
-$ npm run start:dev
+  <h3>🔑 Auth APIs</h3>
 
-# production mode
-$ npm run start:prod
-```
+  <h4>1. ตรวจสอบว่าเป็นใคร (Who am I)</h4>
+  <pre><code>curl -X GET http://localhost:4001/api/auth/whoami \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</code></pre>
 
-## Run tests
+  <h4>2. สมัครสมาชิก (Register)</h4>
+  <pre><code>curl -X POST http://localhost:4001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_card": "1234567890121",
+    "name": "John",
+    "lastname": "Doe",
+    "phone": "0890000000",
+    "password": "mypassword",
+    "confirmPassword": "mypassword"
+  }'</code></pre>
 
-```bash
-# unit tests
-$ npm run test
+  <h4>3. ล็อกอิน (Login)</h4>
+  <pre><code>curl -X POST http://localhost:4001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "johndoe",
+    "password": "mypassword"
+  }'</code></pre>
 
-# e2e tests
-$ npm run test:e2e
+  <h4>4. ขอ Access Token ใหม่ (Refresh)</h4>
+  <pre><code>curl -X POST http://localhost:4001/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh_token": "&lt;REFRESH_TOKEN&gt;"
+  }'</code></pre>
 
-# test coverage
-$ npm run test:cov
-```
+  <h4>5. ออกจากระบบ (Logout)</h4>
+  <pre><code>curl -X POST http://localhost:4001/api/auth/logout \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</code></pre>
 
-## Deployment
+  <h3>👤 User APIs</h3>
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+  <h4>1. ดึงข้อมูลผู้ใช้ทั้งหมด</h4>
+  <pre><code>curl -X GET http://localhost:4001/api/user \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</code></pre>
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+  <h4>2. ดึงข้อมูลผู้ใช้ตาม ID</h4>
+  <pre><code>curl -X GET http://localhost:4001/api/user/&lt;USER_ID&gt; \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</code></pre>
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+  <h4>3. สร้างผู้ใช้ใหม่</h4>
+  <pre><code>curl -X POST http://localhost:4001/api/user \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane",
+    "lastname": "Smith"
+  }'</code></pre>
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+  <h4>4. ลบผู้ใช้</h4>
+  <pre><code>curl -X DELETE http://localhost:4001/api/user/&lt;USER_ID&gt; \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</code></pre>
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+  <div class="note">
+    <strong>หมายเหตุ:</strong>
+    <ul>
+      <li>แทนค่า <code>&lt;ACCESS_TOKEN&gt;</code> ด้วย JWT ที่ถูกต้อง</li>
+      <li>แทนค่า <code>&lt;USER_ID&gt;</code> ด้วยรหัสผู้ใช้ที่มีอยู่จริงในฐานข้อมูล</li>
+      <li>Payload บางตัวอย่างอาจต้องปรับให้ตรงกับ <em>DTO ของโปรเจกต์จริง</em></li>
+    </ul>
+  </div>
