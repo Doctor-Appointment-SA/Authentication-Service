@@ -31,10 +31,11 @@ cd Authentication-Service</code></pre>
   <pre><code>npm install</code></pre>
 
   <h3>3. ตั้งค่าไฟล์ .env</h3>
-  <pre><code># Database
+  <pre><code>
+# Database
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
 
-# JWT
+# JWT 
 JWT_ACCESS_SECRET=""
 JWT_REFRESH_SECRET=""
 JWT_ACCESS_EXPIRES="15m"
