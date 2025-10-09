@@ -1,0 +1,8 @@
+node_modules
+dist
+.next
+.prisma
+coverage
+.git
+.env
+*.log

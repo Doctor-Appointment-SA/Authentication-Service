@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -8,7 +9,7 @@ datasource db {
 }
 
 model appointment {
-  id           String    @id @db.Uuid
+  id           String    @id @default(uuid()) @db.Uuid
   patient_id   String?   @db.Uuid
   doctor_id    String?   @db.Uuid
   appoint_date DateTime? @db.Timestamp(6)
@@ -18,7 +19,7 @@ model appointment {
 }
 
 model doctor {
-  id             String           @id @db.Uuid
+  id             String           @id @default(uuid()) @db.Uuid
   specialty      String?
   appointment    appointment[]
   user           user             @relation(fields: [id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -28,7 +29,7 @@ model doctor {
 }
 
 model medical_record {
-  id         String   @id @db.Uuid
+  id         String   @id @default(uuid()) @db.Uuid
   doctor_id  String?  @db.Uuid
   patient_id String?  @db.Uuid
   diagnosis  String?  @db.VarChar
@@ -39,7 +40,7 @@ model medical_record {
 }
 
 model medication {
-  id                String              @id @db.Uuid
+  id                String              @id @default(uuid()) @db.Uuid
   name              String?
   description       String?
   price             Float?
@@ -47,7 +48,7 @@ model medication {
 }
 
 model notification {
-  id      String  @id @db.Uuid
+  id      String  @id @default(uuid()) @db.Uuid
   user_id String? @db.Uuid
   title   String?
   message String?
@@ -55,7 +56,7 @@ model notification {
 }
 
 model patient {
-  id                                 String           @id @db.Uuid
+  id                                 String           @id @default(uuid()) @db.Uuid
   hospital_number                    String?
   appointment                        appointment[]
   medical_record                     medical_record[]
@@ -65,7 +66,7 @@ model patient {
 }
 
 model payment {
-  id              String        @id @db.Uuid
+  id              String        @id @default(uuid()) @db.Uuid
   prescription_id String?       @db.Uuid
   amount          Float?
   status          String?
@@ -75,7 +76,7 @@ model payment {
 }
 
 model prescription {
-  id                String              @id @db.Uuid
+  id                String              @id @default(uuid()) @db.Uuid
   patient_id        String?             @db.Uuid
   doctor_id         String?             @db.Uuid
   medication        String?             @db.Uuid
@@ -89,7 +90,7 @@ model prescription {
 }
 
 model prescription_item {
-  id              String        @id @db.Uuid
+  id              String        @id @default(uuid()) @db.Uuid
   medication_id   String?       @db.Uuid
   amount          Int?
   prescription_id String?       @db.Uuid
@@ -110,14 +111,14 @@ model refresh_token {
 }
 
 model schedule {
-  id        String  @id @db.Uuid
+  id        String  @id @default(uuid()) @db.Uuid
   doctor_id String? @db.Uuid
   timeslot  String?
   doctor    doctor? @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model tracking {
-  id              String        @id @db.Uuid
+  id              String        @id @default(uuid()) @db.Uuid
   prescription_id String?       @db.Uuid
   status          String?
   prescription    prescription? @relation(fields: [prescription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
