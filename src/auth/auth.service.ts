@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -20,7 +25,13 @@ export class AuthService {
     if (!user || !user.password) return null;
     const ok = await bcrypt.compare(pass, user.password);
     if (!ok) return null;
-    return { id: user.id, name: user.name, lastname: user.lastname, role: user.role, health_benefits: user.health_benefits };
+    return {
+      id: user.id,
+      name: user.name,
+      lastname: user.lastname,
+      role: user.role,
+      health_benefits: user.health_benefits,
+    };
   }
 
   private signAccessToken(payload: { sub: string; role: string }) {
@@ -32,10 +43,13 @@ export class AuthService {
 
   private async issueRefreshToken(userId: string) {
     const expiresIn = this.cfg.get('JWT_REFRESH_EXPIRES') || '7d';
-    const token = await this.jwt.signAsync({ sub: userId }, {
-      secret: this.cfg.get('JWT_REFRESH_SECRET'),
-      expiresIn,
-    });
+    const token = await this.jwt.signAsync(
+      { sub: userId },
+      {
+        secret: this.cfg.get('JWT_REFRESH_SECRET'),
+        expiresIn,
+      },
+    );
 
     // store hashed token for rotation/revocation
     const hashed = await bcrypt.hash(token, 12);
@@ -56,16 +70,36 @@ export class AuthService {
     if (!m) return 0;
     const n = Number(m[1]);
     const unit = m[2];
-    const mult = unit === 's' ? 1000 : unit === 'm' ? 60000 : unit === 'h' ? 3600000 : 86400000;
+    const mult =
+      unit === 's'
+        ? 1000
+        : unit === 'm'
+          ? 60000
+          : unit === 'h'
+            ? 3600000
+            : 86400000;
     return n * mult;
   }
 
-  async register(dto: { id_card: string; name?: string; lastname?: string; phone?: string; password: string; confirmPassword?: string }) {
+  async register(dto: {
+    id_card: string;
+    name?: string;
+    lastname?: string;
+    phone?: string;
+    password: string;
+    confirmPassword?: string;
+  }) {
     console.log('AuthService dto:', dto);
     if (dto.password !== dto.confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
-    const user = await this.users.create({ id_card: dto.id_card, name: dto.name, lastname: dto.lastname, phone: dto.phone, password: dto.password });
+    const user = await this.users.create({
+      id_card: dto.id_card,
+      name: dto.name,
+      lastname: dto.lastname,
+      phone: dto.phone,
+      password: dto.password,
+    });
     const tokens = await this.loginById(user.id, 'patient');
     return { user, ...tokens };
   }
@@ -86,25 +120,41 @@ export class AuthService {
 
   async refresh(userId: string, incomingToken: string) {
     // verify signature first
-    await this.jwt.verifyAsync(incomingToken, { secret: this.cfg.get('JWT_REFRESH_SECRET') });
+    await this.jwt.verifyAsync(incomingToken, {
+      secret: this.cfg.get('JWT_REFRESH_SECRET'),
+    });
     // check it exists (and not revoked)
-    const tokens = await this.prisma.refresh_token.findMany({ where: { userId, revoked: false }});
-    const match = await Promise.any(tokens.map(t => bcrypt.compare(incomingToken, t.hashed)))
-      .catch(() => false);
+    const tokens = await this.prisma.refresh_token.findMany({
+      where: { userId, revoked: false },
+    });
+    const match = await Promise.any(
+      tokens.map((t: { hashed: string }) =>
+        bcrypt.compare(incomingToken, t.hashed),
+      ),
+    ).catch(() => false);
     if (!match) throw new UnauthorizedException('Refresh token invalid');
 
     // rotate: revoke all old tokens for simplicity
-    await this.prisma.refresh_token.updateMany({ where: { userId }, data: { revoked: true }});
+    await this.prisma.refresh_token.updateMany({
+      where: { userId },
+      data: { revoked: true },
+    });
 
     const user = await this.users.findById(userId);
     if (!user) throw new UnauthorizedException('User not found');
-    const access_token = await this.signAccessToken({ sub: user.id, role: user.role || "" });
+    const access_token = await this.signAccessToken({
+      sub: user.id,
+      role: user.role || '',
+    });
     const refresh_token = await this.issueRefreshToken(user.id);
     return { access_token, refresh_token };
   }
 
   async logout(userId: string) {
-    await this.prisma.refresh_token.updateMany({ where: { userId }, data: { revoked: true }});
+    await this.prisma.refresh_token.updateMany({
+      where: { userId },
+      data: { revoked: true },
+    });
     return { ok: true };
   }
 
@@ -113,13 +163,13 @@ export class AuthService {
       where: { id: userId },
       select: {
         id: true,
-        username: true,           // your HN
+        username: true, // your HN
         id_card: true,
         name: true,
         lastname: true,
         phone: true,
         role: true,
-        health_benefits: true,    // String[] if you followed the array change
+        health_benefits: true, // String[] if you followed the array change
         createdAt: true,
       },
     });
