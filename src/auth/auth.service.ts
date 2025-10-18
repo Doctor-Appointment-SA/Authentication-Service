@@ -96,8 +96,10 @@ export class AuthService {
     // rotate: revoke all old tokens for simplicity
     await this.prisma.refresh_token.updateMany({ where: { userId }, data: { revoked: true }});
 
+    // create new access_token, refresh_token
     const user = await this.users.findById(userId);
     if (!user) throw new UnauthorizedException('User not found');
+
     const access_token = await this.signAccessToken({ sub: user.id, role: user.role || "" });
     const refresh_token = await this.issueRefreshToken(user.id);
     return { access_token, refresh_token };
