@@ -5,5 +5,5 @@ COPY package*.json ./
 RUN npm ci --no-audit --progress=false
 
 # Prisma schema จะมาจาก bind-mount เช่นกัน
-EXPOSE 5001
+EXPOSE 4001
 CMD ["npm","run","start:dev"]
