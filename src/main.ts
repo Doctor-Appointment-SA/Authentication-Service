@@ -21,7 +21,7 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  await app.listen(process.env.PORT || 4001);
+  await app.listen(process.env.PORT || 5001, '0.0.0.0');
 }
 
 bootstrap();

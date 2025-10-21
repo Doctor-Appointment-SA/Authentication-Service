@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -19,8 +20,9 @@ model appointment {
 }
 
 model doctor {
-  id             String           @id @db.Uuid
+  id             String           @id @default(uuid()) @db.Uuid
   specialty      String?
+  detail         String?
   detail         String?
   appointment    appointment[]
   user           user             @relation(fields: [id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -30,7 +32,7 @@ model doctor {
 }
 
 model medical_record {
-  id         String   @id @db.Uuid
+  id         String   @id @default(uuid()) @db.Uuid
   doctor_id  String?  @db.Uuid
   patient_id String?  @db.Uuid
   diagnosis  String?  @db.VarChar
@@ -41,7 +43,7 @@ model medical_record {
 }
 
 model medication {
-  id                String              @id @db.Uuid
+  id                String              @id @default(uuid()) @db.Uuid
   name              String?
   description       String?
   price             Float?
@@ -51,7 +53,7 @@ model medication {
 }
 
 model notification {
-  id      String  @id @db.Uuid
+  id      String  @id @default(uuid()) @db.Uuid
   user_id String? @db.Uuid
   title   String?
   message String?
@@ -59,7 +61,7 @@ model notification {
 }
 
 model patient {
-  id                                 String           @id @db.Uuid
+  id                                 String           @id @default(uuid()) @db.Uuid
   hospital_number                    String?
   blood_drawn_at                     DateTime?
   missed_arv_days                    Int?
@@ -83,11 +85,12 @@ model payment {
 }
 
 model prescription {
-  id                String              @id @db.Uuid
+  id                String              @id @default(uuid()) @db.Uuid
   patient_id        String?             @db.Uuid
   doctor_id         String?             @db.Uuid
   status            String?
   created_at        DateTime?           @db.Timestamp(6)
+  payment           payment?
   payment           payment?
   doctor            doctor?             @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   patient           patient?            @relation(fields: [patient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -95,7 +98,7 @@ model prescription {
 }
 
 model prescription_item {
-  id              String        @id @db.Uuid
+  id              String        @id @default(uuid()) @db.Uuid
   medication_id   String?       @db.Uuid
   amount          Int?
   prescription_id String?       @db.Uuid
@@ -116,7 +119,7 @@ model refresh_token {
 }
 
 model schedule {
-  id        String  @id @db.Uuid
+  id        String  @id @default(uuid()) @db.Uuid
   doctor_id String? @db.Uuid
   timeslot  String?
   doctor    doctor? @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -134,12 +137,18 @@ model user {
   id                                    String         @id @default(uuid()) @db.Uuid
   password                              String?        @db.VarChar
   createdAt                             DateTime?      @db.Timestamp(6)
+  id                                    String         @id @default(uuid()) @db.Uuid
+  password                              String?        @db.VarChar
+  createdAt                             DateTime?      @db.Timestamp(6)
   role                                  String?
+  id_card                               String         @unique
+  username                              String?        @unique(map: "user_username_unique")
   id_card                               String         @unique
   username                              String?        @unique(map: "user_username_unique")
   lastname                              String?
   name                                  String?
   phone                                 String?
+  health_benefits                       String[]
   health_benefits                       String[]
   doctor                                doctor?
   notification                          notification[]
