@@ -12,12 +12,10 @@
 - สมัครสมาชิก / ล็อกอิน
 - เก็บรหัสผ่านแบบเข้ารหัสด้วย **bcrypt**
 - ระบบยืนยันตัวตนด้วย **JWT 2 ชั้น**
-  - **Access Token** — ส่งกลับใน response body ให้ frontend เก็บไว้ใช้ยิง request
-  - **Refresh Token** — ส่งกลับเป็น **httpOnly cookie** ที่ JavaScript อ่านไม่ได้
-    เพื่อลดความเสี่ยงจากการถูกขโมย token ผ่าน XSS
-- **หมุน refresh token ทุกครั้งที่ใช้** — เรียก `/refresh` หนึ่งครั้งจะได้ทั้ง access token
-  และ refresh token ชุดใหม่ ส่วนของเดิมถูก `revoked` **ทันทีที่ใช้** ไม่ใช่รอให้หมดอายุ
-- เก็บ refresh token ในฐานข้อมูลแบบ hash พร้อมสถานะ `revoked` เพื่อให้ logout ได้จริง
+  - **Access Token** — ให้ frontend เก็บไว้ใช้ยิง request เพื่อทำ authentication
+  - **Refresh Token** — ใช้คู่กับ access token เพื่อทำ session การใช้งาน
+- **การหมุน refresh token** — เรียก `/refresh` หนึ่งครั้งจะได้ทั้ง access token
+  และ refresh token ชุดใหม่ ส่วนของเดิมถูก `revoked` ทิ้ง
 - ใช้ **Prisma ORM** เชื่อมต่อฐานข้อมูล PostgreSQL
 
 ---
