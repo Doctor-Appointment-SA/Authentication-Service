@@ -1,39 +1,44 @@
-# Authentication Service
+# 🏥 Authentication Service
 
 บริการนี้ทำหน้าที่จัดการ **การยืนยันตัวตน (Authentication)** สำหรับการใช้งานแอปพลิเคชัน
 เป็นหนึ่งใน service ของ [ระบบนัดหมายแพทย์](https://github.com/Doctor-Appointment-SA)
 
-**Tech stack:** NestJS · Prisma ORM · PostgreSQL · JWT
+**Tech stack:** NestJS · Prisma ORM · PostgreSQL · JWT · Passport
 
 ---
 
-## Features
+## ✨ Features
 
 - สมัครสมาชิก / ล็อกอิน
 - เก็บรหัสผ่านแบบเข้ารหัสด้วย **bcrypt**
-- ระบบยืนยันตัวตนด้วย **JWT**
-  - **Access Token** — ใช้ยืนยันตัวตนขณะใช้งาน (อายุ 15 นาที)
-  - **Refresh Token** — ใช้สร้าง Access Token ใหม่ (อายุ 1 วัน)
+- ระบบยืนยันตัวตนด้วย **JWT 2 ชั้น**
+  - **Access Token** — ส่งกลับใน response body ให้ frontend เก็บไว้ใช้ยิง request
+  - **Refresh Token** — ส่งกลับเป็น **httpOnly cookie** ที่ JavaScript อ่านไม่ได้
+    เพื่อลดความเสี่ยงจากการถูกขโมย token ผ่าน XSS
+- **หมุน refresh token ทุกครั้งที่ใช้** — เรียก `/refresh` หนึ่งครั้งจะได้ทั้ง access token
+  และ refresh token ชุดใหม่ ของเดิมถูกยกเลิก
+- เก็บ refresh token ในฐานข้อมูลแบบ hash พร้อมสถานะ `revoked` เพื่อให้ logout ได้จริง
+- รองรับข้อมูล **สิทธิ์การรักษา (health benefits)** โดยตรวจค่าที่ส่งเข้ามาว่าอยู่ในรายการที่กำหนด
 - ใช้ **Prisma ORM** เชื่อมต่อฐานข้อมูล PostgreSQL
 
 ---
 
-## การติดตั้ง
+## ⚙️ การติดตั้ง
 
-### Clone โปรเจกต์
+### 1️⃣ Clone โปรเจกต์
 
 ```bash
 git clone https://github.com/Doctor-Appointment-SA/Authentication-Service.git
 cd Authentication-Service
 ```
 
-### ติดตั้ง Dependencies
+### 2️⃣ ติดตั้ง Dependencies
 
 ```bash
 npm install
 ```
 
-### ตั้งค่าไฟล์ `.env`
+### 3️⃣ ตั้งค่าไฟล์ `.env`
 
 ```env
 # Database
@@ -44,71 +49,87 @@ JWT_ACCESS_SECRET=""
 JWT_REFRESH_SECRET=""
 JWT_ACCESS_EXPIRES="15m"
 JWT_REFRESH_EXPIRES="1d"
+
+# ไม่บังคับ
+PORT=5001
+NODE_ENV=development
 ```
 
-### สร้าง Prisma Client
+> `JWT_ACCESS_SECRET` ต้องใช้ค่าเดียวกันกับ service อื่นที่ต้องตรวจ token ใบเดียวกัน
+> เช่น [Payment Service](https://github.com/Doctor-Appointment-SA/Payment-Service)
+
+### 4️⃣ สร้าง Prisma Client
 
 ```bash
 npx prisma generate
 ```
 
-### รันเซิร์ฟเวอร์ Development
+### 5️⃣ รันเซิร์ฟเวอร์ Development
 
 ```bash
-npm run build
 npm run start:dev
 ```
 
-เซิร์ฟเวอร์จะรันที่ `http://localhost:4001`
+ทุก endpoint จะขึ้นต้นด้วย `/api`
+
+| วิธีรัน | Port ที่เรียกใช้ |
+|---|---|
+| `npm run start:dev` โดยตรง | `http://localhost:5001` (ค่า default ของ `PORT`) |
+| ผ่าน `docker compose` ([Infra](https://github.com/Doctor-Appointment-SA/Infra)) | `http://localhost:5001` (map ไปที่ port 4001 ใน container) |
+
+> **หมายเหตุ:** CORS รับเฉพาะ `http://localhost:3000` และเปิด `credentials: true`
+> เพราะ refresh token ส่งผ่าน cookie — ฝั่ง frontend ต้องยิง request ด้วย
+> `credentials: 'include'` ไม่งั้น cookie จะไม่ถูกส่งไปด้วย
 
 ---
 
-## API Reference
+## 🔑 API Reference
 
 | Method | Endpoint | คำอธิบาย | ต้องมี Token |
 |---|---|---|:---:|
-| `GET` | `/api/auth/whoami` | ตรวจสอบว่าเป็นใคร | ✅ |
 | `POST` | `/api/auth/register` | สมัครสมาชิก | — |
 | `POST` | `/api/auth/login` | ล็อกอิน | — |
-| `POST` | `/api/auth/refresh` | ขอ Access Token ใหม่ | — |
-| `POST` | `/api/auth/logout` | ออกจากระบบ | ✅ |
-| `GET` | `/api/user` | ดึงข้อมูลผู้ใช้ทั้งหมด | ✅ |
-| `GET` | `/api/user/<USER_ID>` | ดึงข้อมูลผู้ใช้ตาม ID | ✅ |
-| `POST` | `/api/user` | สร้างผู้ใช้ใหม่ | ✅ |
-| `DELETE` | `/api/user/<USER_ID>` | ลบผู้ใช้ | ✅ |
+| `GET` | `/api/auth/whoami` | ดึงข้อมูลผู้ใช้ที่ล็อกอินอยู่ | ✅ |
+| `POST` | `/api/auth/refresh` | ขอ Access Token ใหม่ | 🍪 cookie |
+| `POST` | `/api/auth/logout` | ออกจากระบบ (revoke refresh token) | ✅ |
+| `POST` | `/api/users` | สร้างผู้ใช้ใหม่ | ✅ |
+| `GET` | `/api/users/:user_id` | ดึงข้อมูลผู้ใช้ตาม ID | ✅ |
 
 ---
 
-### Auth APIs
+## 🔄 ลำดับการทำงานของ Token
 
-#### 1. ตรวจสอบว่าเป็นใคร (Who am I)
+```
+register / login
+      └─> response body : { user, access_token }        ← frontend เก็บไว้ใช้
+      └─> Set-Cookie    : refresh_token (httpOnly)      ← JavaScript อ่านไม่ได้
 
-ใช้ยืนยันตัวตนขณะใช้งาน — ทุกครั้งที่ยิง Request ต้องมีการยืนยันตัวตนก่อน
+access token หมดอายุ (15 นาที)
+      └─> POST /api/auth/refresh   (เบราว์เซอร์แนบ cookie ให้เอง)
+              └─> { new_access_token } + refresh token ชุดใหม่
 
-```bash
-curl -X GET http://localhost:4001/api/auth/whoami \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
+logout
+      └─> refresh token ในฐานข้อมูลถูก revoke
 ```
 
-<details>
-<summary>ตัวอย่าง response</summary>
+---
 
-```json
-{
-  "sub": "600815d5-0cf5-4696-8137-1a3283d1c002",
-  "role": "patient",
-  "iat": 1760712643,
-  "exp": 1760713543
-}
-```
+## 📖 ตัวอย่างการใช้งาน API
 
-</details>
+### 1. สมัครสมาชิก (Register)
 
-#### 2. สมัครสมาชิก (Register)
+`id_card`, `password`, `confirmPassword` เป็น field ที่บังคับ
+ส่วน `name`, `lastname`, `phone` ใส่หรือไม่ใส่ก็ได้ รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร
+
+> **สำคัญ:** `username` (เลข HN) **ระบบเป็นคนสร้างให้เอง** ส่งมาเองไม่มีผล และ `role` เป็น `patient` เสมอ
+> ส่วน `health_benefits` ที่ส่งมาทาง endpoint นี้ **จะถูกละทิ้ง** ระบบจะสุ่มให้ 3 รายการแทน
+> (ถ้าต้องการกำหนดเอง ต้องใช้ `POST /api/users`)
+> ถ้า `id_card` ซ้ำกับที่มีอยู่แล้วจะได้ `409 Conflict`
 
 ```bash
-curl -X POST http://localhost:4001/api/auth/register \
+curl -X POST http://localhost:5001/api/auth/register \
   -H "Content-Type: application/json" \
+  -c cookie.txt \
   -d '{
     "id_card": "1234567890121",
     "name": "John",
@@ -119,75 +140,141 @@ curl -X POST http://localhost:4001/api/auth/register \
   }'
 ```
 
-#### 3. ล็อกอิน (Login)
+<details>
+<summary>ตัวอย่าง response</summary>
+
+```json
+{
+  "user": {
+    "id": "de3ad64e-e416-4f96-ba71-7f5f1278ebc8",
+    "id_card": "1234567890121",
+    "name": "John",
+    "role": "patient",
+    "createdAt": null
+  },
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+</details>
+
+> response **ไม่ได้คืน `username` (เลข HN) กลับมา** แต่การล็อกอินต้องใช้ค่านี้
+> ให้เรียก `GET /api/auth/whoami` ด้วย `access_token` ที่เพิ่งได้ เพื่อดูเลข HN ของตัวเองก่อน
+
+### 2. ล็อกอิน (Login)
+
+ใช้ `username` คือ **เลข HN ที่ระบบสร้างให้** (ดูได้จาก `whoami`) ไม่ใช่ค่าที่ตั้งเอง
 
 ```bash
-curl -X POST http://localhost:4001/api/auth/login \
+curl -X POST http://localhost:5001/api/auth/login \
   -H "Content-Type: application/json" \
+  -c cookie.txt \
   -d '{
-    "username": "johndoe",
+    "username": "HN26000001",
     "password": "mypassword"
   }'
 ```
 
-#### 4. ขอ Access Token ใหม่ (Refresh)
+response จะได้ `{ user, access_token }` ส่วน refresh token จะถูกเซ็ตเป็น cookie
+(`-c cookie.txt` คือให้ curl เก็บ cookie ไว้ใช้ต่อ)
+
+### 3. ตรวจสอบว่าเป็นใคร (Who am I)
 
 ```bash
-curl -X POST http://localhost:4001/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refresh_token": "<REFRESH_TOKEN>"
+curl -X GET http://localhost:5001/api/auth/whoami \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+<details>
+<summary>ตัวอย่าง response</summary>
+
+```json
+{
+  "id": "600815d5-0cf5-4696-8137-1a3283d1c002",
+  "username": "HN25000002",
+  "id_card": "1234567890121",
+  "name": "John",
+  "lastname": "Doe",
+  "phone": "0890000000",
+  "role": "patient",
+  "health_benefits": ["Universal Coverage Scheme (UCS - Gold Card)"],
+  "createdAt": "2025-10-17T14:50:43.000Z"
+}
+```
+
+</details>
+
+### 4. ขอ Access Token ใหม่ (Refresh)
+
+refresh token อ่านจาก **cookie** ไม่ใช่ request body
+
+```bash
+curl -X POST http://localhost:5001/api/auth/refresh \
+  -b cookie.txt -c cookie.txt
+```
+
+### 5. ออกจากระบบ (Logout)
+
+```bash
+curl -X POST http://localhost:5001/api/auth/logout \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+### 6. สร้างผู้ใช้ใหม่
+
+ต่างจาก `/auth/register` ตรงที่ endpoint นี้ **รับค่า `health_benefits` ที่ส่งมาจริง**
+(ถ้าไม่ส่งมา ระบบจะสุ่มให้ 3 รายการ) ค่าที่ส่งต้องตรงกับรายการใน
+[`src/constants/health-benefits.ts`](./src/constants/health-benefits.ts) ไม่งั้นจะได้ `400`
+
+```bash
+curl -X POST http://localhost:5001/api/users   -H "Authorization: Bearer <ACCESS_TOKEN>"   -H "Content-Type: application/json" -d '{
+    "id_card": "7770000000001",
+    "name": "Direct",
+    "lastname": "User",
+    "password": "mypassword",
+    "health_benefits": ["Dental Add-on"]
   }'
 ```
 
-#### 5. ออกจากระบบ (Logout)
+### 7. ดึงข้อมูลผู้ใช้ตาม ID
 
 ```bash
-curl -X POST http://localhost:4001/api/auth/logout \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
+curl -X GET http://localhost:5001/api/users/<USER_ID>   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
 ---
 
-### User APIs
+## 🗂️ โครงสร้างโปรเจกต์
 
-#### 1. ดึงข้อมูลผู้ใช้ทั้งหมด
-
-```bash
-curl -X GET http://localhost:4001/api/user \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
-
-#### 2. ดึงข้อมูลผู้ใช้ตาม ID
-
-```bash
-curl -X GET http://localhost:4001/api/user/<USER_ID> \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-#### 3. สร้างผู้ใช้ใหม่
-
-```bash
-curl -X POST http://localhost:4001/api/user \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Jane",
-    "lastname": "Smith"
-  }'
-```
-
-#### 4. ลบผู้ใช้
-
-```bash
-curl -X DELETE http://localhost:4001/api/user/<USER_ID> \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
+src/
+├── auth/
+│   ├── auth.controller.ts       # register / login / whoami / refresh / logout
+│   ├── auth.service.ts          # bcrypt, ออก token, หมุน refresh token
+│   ├── jwt-auth.guard.ts        # Guard ตรวจ access token
+│   ├── dto/                     # validation schema ของ register และ login
+│   └── utils/token.helper.ts    # เซ็ต refresh token เป็น httpOnly cookie
+├── strategies/
+│   └── jwt.strategy.ts          # ถอด token แล้ว attach user เข้า request
+├── users/                       # สร้างและค้นหาผู้ใช้
+├── constants/
+│   └── health-benefits.ts       # รายการสิทธิ์การรักษาที่อนุญาต
+└── prisma/                      # Prisma service + connection
 ```
 
 ---
 
-## หมายเหตุ
+## 📝 หมายเหตุ
 
-- แทนค่า `<ACCESS_TOKEN>` ด้วย JWT ที่ถูกต้อง
-- แทนค่า `<USER_ID>` ด้วยรหัสผู้ใช้ที่มีอยู่จริงในฐานข้อมูล
-- Payload บางตัวอย่างอาจต้องปรับให้ตรงกับ DTO ของโปรเจกต์จริง
+- แทนค่า `<ACCESS_TOKEN>` ด้วย access token ที่ได้จาก register หรือ login
+- ทุก endpoint ผ่าน `ValidationPipe` แบบ `whitelist` — field ที่ไม่ได้ประกาศไว้ใน DTO
+  จะถูกตัดทิ้งอัตโนมัติ
+- cookie ของ refresh token ตั้ง `secure: true` เฉพาะตอน `NODE_ENV=production`
+  ตอน develop บน http จึงยังใช้งานได้ปกติ
+- `username` (เลข HN) ระบบสร้างให้อัตโนมัติเสมอ และ **ไม่ได้คืนมาใน response ของ register**
+  ต้องเรียก `whoami` เพื่อดูก่อน ถึงจะล็อกอินด้วยรหัสผ่านได้
+- endpoint ใต้ `/api/users` ต้องมี access token ทั้งคู่ และ `GET /api/users/:user_id`
+  จะไม่คืนค่า `password` กลับมา
+- `logout` เพิกถอน refresh token จริง — เรียก `/refresh` ด้วย cookie เดิมหลัง logout จะได้ `401`
+- อายุ cookie ของ refresh token ตั้งไว้ 7 วัน แต่ตัว JWT ข้างในหมดอายุตาม
+  `JWT_REFRESH_EXPIRES` (1 วัน) — cookie จึงยังค้างอยู่แม้ token ข้างในหมดอายุแล้ว

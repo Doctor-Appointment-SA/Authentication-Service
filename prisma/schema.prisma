@@ -23,7 +23,6 @@ model doctor {
   id             String           @id @default(uuid()) @db.Uuid
   specialty      String?
   detail         String?
-  detail         String?
   appointment    appointment[]
   user           user             @relation(fields: [id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   medical_record medical_record[]
@@ -91,7 +90,6 @@ model prescription {
   status            String?
   created_at        DateTime?           @db.Timestamp(6)
   payment           payment?
-  payment           payment?
   doctor            doctor?             @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   patient           patient?            @relation(fields: [patient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   prescription_item prescription_item[]
@@ -137,18 +135,12 @@ model user {
   id                                    String         @id @default(uuid()) @db.Uuid
   password                              String?        @db.VarChar
   createdAt                             DateTime?      @db.Timestamp(6)
-  id                                    String         @id @default(uuid()) @db.Uuid
-  password                              String?        @db.VarChar
-  createdAt                             DateTime?      @db.Timestamp(6)
   role                                  String?
-  id_card                               String         @unique
-  username                              String?        @unique(map: "user_username_unique")
   id_card                               String         @unique
   username                              String?        @unique(map: "user_username_unique")
   lastname                              String?
   name                                  String?
   phone                                 String?
-  health_benefits                       String[]
   health_benefits                       String[]
   doctor                                doctor?
   notification                          notification[]

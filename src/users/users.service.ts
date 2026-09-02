@@ -87,6 +87,19 @@ export class UsersService {
       where = { id: idParam }; // กรณี String @id (uuid)
     }
 
-    return this.prisma.user.findUnique({ where });
+    return this.prisma.user.findUnique({
+      where,
+      select: {
+        id: true,
+        username: true,
+        id_card: true,
+        name: true,
+        lastname: true,
+        phone: true,
+        role: true,
+        health_benefits: true,
+        createdAt: true,
+      },
+    });
   }
 }

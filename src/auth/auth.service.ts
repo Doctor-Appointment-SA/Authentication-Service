@@ -89,7 +89,6 @@ export class AuthService {
     password: string;
     confirmPassword?: string;
   }) {
-    console.log('AuthService dto:', dto);
     if (dto.password !== dto.confirmPassword) {
       throw new BadRequestException('Passwords do not match');
     }
