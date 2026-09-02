@@ -1,4 +1,4 @@
-# 🏥 Authentication Service
+# Authentication Service
 
 บริการนี้ทำหน้าที่จัดการ **การยืนยันตัวตน (Authentication)** สำหรับการใช้งานแอปพลิเคชัน
 เป็นหนึ่งใน service ของ [ระบบนัดหมายแพทย์](https://github.com/Doctor-Appointment-SA)
@@ -7,7 +7,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 - สมัครสมาชิก / ล็อกอิน
 - เก็บรหัสผ่านแบบเข้ารหัสด้วย **bcrypt**
@@ -18,22 +18,22 @@
 
 ---
 
-## ⚙️ การติดตั้ง
+## การติดตั้ง
 
-### 1️⃣ Clone โปรเจกต์
+### Clone โปรเจกต์
 
 ```bash
 git clone https://github.com/Doctor-Appointment-SA/Authentication-Service.git
 cd Authentication-Service
 ```
 
-### 2️⃣ ติดตั้ง Dependencies
+### ติดตั้ง Dependencies
 
 ```bash
 npm install
 ```
 
-### 3️⃣ ตั้งค่าไฟล์ `.env`
+### ตั้งค่าไฟล์ `.env`
 
 ```env
 # Database
@@ -46,13 +46,13 @@ JWT_ACCESS_EXPIRES="15m"
 JWT_REFRESH_EXPIRES="1d"
 ```
 
-### 4️⃣ สร้าง Prisma Client
+### สร้าง Prisma Client
 
 ```bash
 npx prisma generate
 ```
 
-### 5️⃣ รันเซิร์ฟเวอร์ Development
+### รันเซิร์ฟเวอร์ Development
 
 ```bash
 npm run build
@@ -63,7 +63,7 @@ npm run start:dev
 
 ---
 
-## 🔑 API Reference
+## API Reference
 
 | Method | Endpoint | คำอธิบาย | ต้องมี Token |
 |---|---|---|:---:|
@@ -186,7 +186,7 @@ curl -X DELETE http://localhost:4001/api/user/<USER_ID> \
 
 ---
 
-## 📝 หมายเหตุ
+## หมายเหตุ
 
 - แทนค่า `<ACCESS_TOKEN>` ด้วย JWT ที่ถูกต้อง
 - แทนค่า `<USER_ID>` ด้วยรหัสผู้ใช้ที่มีอยู่จริงในฐานข้อมูล
